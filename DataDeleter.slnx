@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DataDeleter.Test/DataDeleter.Test.csproj" />
+  <Project Path="DataDeleter/DataDeleter.csproj" />
+</Solution>
