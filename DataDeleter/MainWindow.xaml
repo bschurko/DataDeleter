@@ -6,13 +6,9 @@
         xmlns:local="clr-namespace:DataDeleter"
         xmlns:vm="clr-namespace:DataDeleter.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800">
-    <!--
-    <Window.DataContext>
-        <vm:MainViewModel />
-    </Window.DataContext>
--->
-    <Grid Margin="0,0,0,0">
+        Title="MainWindow" Height="600" Width="800">
+
+    <Grid Margin="0,0,0,6">
         <Grid.ColumnDefinitions>
 
             <ColumnDefinition Width="400*"/>
@@ -22,16 +18,59 @@
         <TextBlock HorizontalAlignment="Left" Margin="268,4,0,0" TextWrapping="Wrap" Text="To Date:" VerticalAlignment="Top" Width="52" Grid.Column="1" Height="18"/>
         <DatePicker SelectedDate="{Binding ToDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Margin="243,27,0,0" VerticalAlignment="Top" Height="27" Width="110"/>
         <DataGrid ItemsSource="{Binding ScannedFiles}"
-            SelectedItem="{Binding SelectedScannedFile, Mode=TwoWay}"
-            Margin="0,85,0,71" HorizontalAlignment="Center" Width="780">
+          SelectedItem="{Binding SelectedScannedFile, Mode=TwoWay}"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          Margin="0,111,0,71" 
+          HorizontalAlignment="Center" 
+          Width="780">
+            <DataGrid.Columns>
+                <!-- Checkbox column bound to IsSelected -->
+                <DataGridCheckBoxColumn Header="Select" 
+                                Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                Width="60"/>
+
+                <!-- File Name -->
+                <DataGridTextColumn Header="File Name" 
+                            Binding="{Binding FileName}" 
+                            Width="150"/>
+
+                <!-- File Path -->
+                <DataGridTextColumn Header="File Path" 
+                            Binding="{Binding FilePath}" 
+                            Width="*"/>
+
+                <!-- Date Created with custom formatting -->
+                <DataGridTextColumn Header="Date Created" 
+                            Binding="{Binding DateCreated, StringFormat={}{0:yyyy-MM-dd HH:mm}}" 
+                            Width="130"/>
+
+                <!-- Date Modified with custom formatting -->
+                <DataGridTextColumn Header="Date Modified" 
+                            Binding="{Binding DateModified, StringFormat={}{0:yyyy-MM-dd HH:mm}}" 
+                            Width="130"/>
+
+                <DataGridTemplateColumn Header="View" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="View" 
+                            Command="{Binding DataContext.ViewImageCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                            CommandParameter="{Binding FilePath}"
+                            Padding="5,2"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+
+            </DataGrid.Columns>
         </DataGrid>
-        <Button Content="Delete Files" HorizontalAlignment="Left" Margin="596,421,0,0" VerticalAlignment="Top" Height="35" Width="79"/>
-        <Button Command="{Binding ScanFilesCommand}" Content="Scan" HorizontalAlignment="Left" Margin="699,421,0,0" VerticalAlignment="Top" Height="35" Width="77"/>
+        <Button Content="Delete Files" Command="{Binding DeleteFilesCommand}" HorizontalAlignment="Left" Margin="596,506,0,0" VerticalAlignment="Top" Height="35" Width="79"/>
+        <Button Command="{Binding ScanFilesCommand}" Content="Scan" HorizontalAlignment="Left" Margin="699,506,0,0" VerticalAlignment="Top" Height="35" Width="77"/>
         <Button Command="{Binding AddExtensionCommand}" Content="Add Extension" HorizontalAlignment="Left" Margin="424,38,0,0" VerticalAlignment="Top" Height="32" Width="92"/>
-        <Button Command="{Binding SelectDirectoryPathCommand}" Content="Select Directory" HorizontalAlignment="Left" Margin="327,422,0,0" VerticalAlignment="Top" Height="34" Width="105"/>
+        <Button Command="{Binding SelectDirectoryPathCommand}" Content="Select Directory" HorizontalAlignment="Left" Margin="327,507,0,0" VerticalAlignment="Top" Height="34" Width="105"/>
         <ListView ItemsSource="{Binding Extensions}"
                   SelectedValue="{Binding SelectedExtension, Mode=TwoWay}"
-                  Margin="531,10,35,404">
+                  Margin="531,10,35,472">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Extension" DisplayMemberBinding="{Binding .}" Width="100"/>
@@ -40,8 +79,8 @@
         </ListView>
         <TextBox
             Text="{Binding ExtensionValue, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Margin="424,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="92" Height="23"/>
-        <TextBox IsEnabled="False"
-            Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Margin="25,422,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="269" Height="34"/>
+        <TextBox IsReadOnly="True"
+            Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Margin="25,507,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="269" Height="34"/>
 
     </Grid>
 </Window>

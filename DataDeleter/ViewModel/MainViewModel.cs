@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Linq;
 
 namespace DataDeleter.ViewModel
 {
@@ -39,10 +41,13 @@ namespace DataDeleter.ViewModel
         public string _selectedExtension = string.Empty;
 
         public IFolderDialog FolderDialog { get; }
+        public IFileService FileService { get; }
 
-        public MainViewModel(IFolderDialog folderDialog)
+        public MainViewModel(IFolderDialog folderDialog,
+            IFileService fileService)
         {
             FolderDialog = folderDialog;
+            FileService = fileService;
         }
 
         [RelayCommand]
@@ -65,17 +70,48 @@ namespace DataDeleter.ViewModel
             }
         }
 
+        [RelayCommand]
+        public void ViewImage(string filePath)
+        {
+            string? selectedFilePath = SelectedScannedFile?.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+                return;
+
+            // Open dialog window safely on UI thread
+            var viewerWindow = new DataDeleter.Views.PopupImage(filePath)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            viewerWindow.ShowDialog();
+        }
+
 
         [RelayCommand]
         public void ScanFiles()
         {
+            var files = FileService.GetFiles(DirectoryPath,
+                Extensions.ToList(),
+                _fromDate, _toDate,
+                SearchOption.AllDirectories);
 
+            ScannedFiles.Clear();
+
+            foreach (var f in files)
+            {
+                ScannedFiles.Add(f);
+            }
         }
 
         [RelayCommand]
         public void DeleteFiles()
         {
+            var deletedFiles = FileService.DeleteFiles(ScannedFiles.Where(f => f.IsSelected).ToList());
 
+            foreach (var f in ScannedFiles.Where(f => deletedFiles.Contains(f)).ToList())
+            {
+                ScannedFiles.Remove(f);
+            }
         }
     }
 }

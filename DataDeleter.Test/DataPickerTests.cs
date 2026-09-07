@@ -37,13 +37,13 @@ namespace DataDeleter.Test
             DateTime startDate = DateTime.Now.AddDays(-10);
             DateTime endDate = DateTime.Now.AddDays(5);
 
-            CreateSampleFiles("C:\\Users\\brett\\test", 5);
+            CreateSampleFiles("C:\\Users\\brett\\test", 15);
 
             var files = service.GetFiles(@"C:\Users\brett\test", exts, startDate, endDate);
 
             Assert.IsNotNull(files);
 
-            service.DeleteFiles(files);
+            service.DeleteFiles(files.ToList());
 
             var newFiles = service.GetFiles(@"C:\Users\brett\test", exts, startDate, endDate);
             Assert.IsEmpty(newFiles);

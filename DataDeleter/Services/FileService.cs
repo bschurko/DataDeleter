@@ -1,4 +1,5 @@
-﻿using SecureDelete;
+﻿using DataDeleter.Model;
+using SecureDelete;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,24 +9,26 @@ namespace DataDeleter.Services
 {
     public interface IFileService
     {
-        List<string> GetFiles(string rootDirectory, List<string> extensions,
+        List<ScannedFile> GetFiles(string rootDirectory, List<string> extensions,
             DateTime? fromDate, DateTime? toDate, SearchOption searchOption = SearchOption.AllDirectories);
-        void DeleteFiles(List<string> filePaths);
+        List<ScannedFile> DeleteFiles(List<ScannedFile> filePaths);
     }
     public class FileService : IFileService
     {
-        public void DeleteFiles(List<string> filePaths)
+        public List<ScannedFile> DeleteFiles(List<ScannedFile> filePaths)
         {
+            var deletedFiles = new List<ScannedFile>();
+
             foreach (var path in filePaths)
             {
                 try
                 {
-                    if (!File.Exists(path))
+                    if (!File.Exists(path.FilePath))
                         continue;
 
                     // Preferred: detects HDD vs SSD
-                    Delete.DeleteFile(path);
-
+                    Delete.DeleteFile(path.FilePath);
+                    deletedFiles.Add(path);
                     // Alternative if you always want to force overwrite:
                     // Delete.DeleteFileWithoutDriveDetection(path);
                 }
@@ -34,9 +37,11 @@ namespace DataDeleter.Services
                     Console.WriteLine($"Failed to shred {path}: {ex.Message}");
                 }
             }
+
+            return deletedFiles;
         }
 
-        public List<string> GetFiles(string rootDirectory, List<string> extensions,
+        public List<ScannedFile> GetFiles(string rootDirectory, List<string> extensions,
             DateTime? fromDate, DateTime? toDate, SearchOption searchOption = SearchOption.AllDirectories)
         {
             if (string.IsNullOrWhiteSpace(rootDirectory))
@@ -59,7 +64,16 @@ namespace DataDeleter.Services
             if (fromDate > toDate)
                 (fromDate, toDate) = (toDate, fromDate);
 
-            return Directory.EnumerateFiles(rootDirectory, "*.*", searchOption)
+            var options = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,               // Skips access-denied folders/files
+                RecurseSubdirectories = searchOption == SearchOption.AllDirectories,             // Equivalent to SearchOption.AllDirectories
+                AttributesToSkip = FileAttributes.Hidden | FileAttributes.System, // Optional: skip system/hidden files
+                MatchCasing = MatchCasing.PlatformDefault
+            };
+
+            var files = Directory.EnumerateFiles(rootDirectory,
+                "*.*", options)
                 .Where(path =>
                 {
                     // Extension filter
@@ -105,6 +119,23 @@ namespace DataDeleter.Services
                 })
                 .ToList();
 
+            List<ScannedFile> scannedFiles = new List<ScannedFile>();
+
+            foreach (var f in files)
+            {
+                ScannedFile scannedFile = new ScannedFile()
+                {
+                    IsSelected = true,
+                    FileName = Path.GetFileName(f),
+                    FilePath = f,
+                    DateCreated = File.GetCreationTime(f),
+                    DateModified = File.GetLastWriteTime(f)
+                };
+
+                scannedFiles.Add(scannedFile);
+            }
+
+            return scannedFiles;
         }
     }
 }

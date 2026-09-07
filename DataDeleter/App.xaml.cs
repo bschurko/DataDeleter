@@ -1,6 +1,7 @@
 ﻿using DataDeleter.Services;
 using DataDeleter.Utils;
 using DataDeleter.ViewModel;
+using DataDeleter.Views;
 using SimpleInjector;
 using System.Configuration;
 using System.Data;
@@ -36,6 +37,12 @@ namespace DataDeleter
         {
             // Register services interface-to-implementation
             container.Register<IFolderDialog, FolderDialog>(Lifestyle.Singleton);
+
+            container.Register<IFileService, FileService>(Lifestyle.Singleton);
+
+            // container.Register<ImageViewModel>(Lifestyle.Singleton);
+
+            // container.Register<PopupImage>(Lifestyle.Singleton);
 
             // Register ViewModels (Transient creates a new instance each time requested)
             container.Register<MainViewModel>(Lifestyle.Singleton);
